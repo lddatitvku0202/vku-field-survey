@@ -18,6 +18,10 @@ async function loadSurveys() {
   }
 }
 
+defineExpose({
+  loadSurveys,
+})
+
 async function removeSurvey(id: string) {
   const confirmed = window.confirm(
     'Bạn có chắc muốn xóa khảo sát này không?',
@@ -45,9 +49,6 @@ function formatDate(timestamp: number) {
 
 onMounted(loadSurveys)
 
-defineExpose({
-  loadSurveys,
-})
 </script>
 
 <template>

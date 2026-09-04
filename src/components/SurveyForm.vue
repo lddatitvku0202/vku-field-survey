@@ -7,6 +7,10 @@ import StepConfirm from './StepConfirm.vue'
 import { saveSurvey } from '../db/surveyRepository'
 import type { SurveyData, SurveySubmission } from '../types/survey'
 
+const emit = defineEmits<{
+  saved: []
+}>()
+
 const currentStep = ref(1)
 
 const form = ref<SurveyData>({
@@ -72,6 +76,8 @@ async function submitSurvey() {
 
   try {
     await saveSurvey(survey)
+
+    emit('saved')
 
     alert('Đã ghi nhận khảo sát và lưu thành công trên thiết bị!')
 
