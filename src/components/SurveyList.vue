@@ -106,6 +106,13 @@ onMounted(loadSurveys)
             {{ survey.notes }}
           </p>
 
+          <img
+  v-if="survey.photo"
+  :src="survey.photo"
+  alt="Ảnh khảo sát"
+  class="survey-photo"
+/>
+
           <small class="survey-item-date">
             {{ formatDate(survey.timestamp) }}
           </small>

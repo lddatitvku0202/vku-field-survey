@@ -4,6 +4,7 @@ import StepLocation from './StepLocation.vue'
 import StepCategory from './StepCategory.vue'
 import StepCondition from './StepCondition.vue'
 import StepConfirm from './StepConfirm.vue'
+import PhotoCapture from './PhotoCapture.vue'
 import { saveSurvey } from '../db/surveyRepository'
 import type { SurveyData, SurveySubmission } from '../types/survey'
 
@@ -20,6 +21,7 @@ const form = ref<SurveyData>({
   category: 'Hardware',
   rating: 0,
   notes: '',
+  photo: undefined,
 })
 
 const totalSteps = 4
@@ -67,11 +69,11 @@ function updateCondition(value: {
 
 async function submitSurvey() {
   const survey: SurveySubmission = {
-    ...form.value,
     id: crypto.randomUUID(),
     timestamp: Date.now(),
     status: 'PENDING_SYNC',
     retryCount: 0,
+    ...form.value,
   }
 
   try {
@@ -92,6 +94,7 @@ async function submitSurvey() {
       category: 'Hardware',
       rating: 0,
       notes: '',
+      photo: undefined,
     }
   } catch (error) {
     console.error('Cannot save survey:', error)
@@ -156,10 +159,10 @@ async function submitSurvey() {
   @update:model-value="updateCondition"
 />
 
-<StepConfirm
-  v-else-if="currentStep === 4"
-  :model-value="form"
-/>
+<template v-if="currentStep === 4">
+  <StepConfirm :model-value="form" />
+  <PhotoCapture v-model="form.photo" />
+</template>
 
         <section v-else class="step-card">
           <div class="step-heading">
