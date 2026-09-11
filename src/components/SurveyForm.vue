@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+
 import StepLocation from './StepLocation.vue'
 import StepCategory from './StepCategory.vue'
 import StepCondition from './StepCondition.vue'
 import StepConfirm from './StepConfirm.vue'
 import PhotoCapture from './PhotoCapture.vue'
+
 import { saveSurvey } from '../db/surveyRepository'
-import type { SurveyData, SurveySubmission } from '../types/survey'
+
+import type {
+  SurveyData,
+  SurveySubmission,
+} from '../types/survey'
 
 const emit = defineEmits<{
   saved: []
@@ -67,6 +73,15 @@ function updateCondition(value: {
   form.value.notes = value.notes
 }
 
+/**
+ * Submit khảo sát:
+ *
+ * 1. Tạo UUID
+ * 2. Gán timestamp
+ * 3. Gán PENDING_SYNC
+ * 4. Lưu vào IndexedDB
+ * 5. Phát sự kiện saved để App đồng bộ và làm mới danh sách
+ */
 async function submitSurvey() {
   const survey: SurveySubmission = {
     id: crypto.randomUUID(),
@@ -77,14 +92,27 @@ async function submitSurvey() {
   }
 
   try {
+    // Luôn lưu local trước
     await saveSurvey(survey)
+
+    console.log(
+      'Survey saved locally:',
+      survey,
+    )
 
     emit('saved')
 
-    alert('Đã ghi nhận khảo sát và lưu thành công trên thiết bị!')
+    if (navigator.onLine) {
+      alert(
+        'Đã ghi nhận khảo sát và lưu thành công!',
+      )
+    } else {
+      alert(
+        'Mất mạng. Khảo sát đã được lưu trên thiết bị và sẽ tự đồng bộ khi có mạng.',
+      )
+    }
 
-    console.log('Saved survey:', survey)
-
+    // Reset form
     currentStep.value = 1
 
     form.value = {
@@ -97,10 +125,17 @@ async function submitSurvey() {
       photo: undefined,
     }
   } catch (error) {
-    console.error('Cannot save survey:', error)
-    alert('Không thể lưu khảo sát. Vui lòng thử lại.')
+    console.error(
+      'Cannot save survey:',
+      error,
+    )
+
+    alert(
+      'Không thể lưu khảo sát. Vui lòng thử lại.',
+    )
   }
 }
+
 </script>
 
 <template>
@@ -127,42 +162,28 @@ async function submitSurvey() {
         </div>
 
         <div class="progress-track">
-          <div
-            class="progress-bar"
-            :style="{ width: `${(currentStep / totalSteps) * 100}%` }"
-          />
+          <div class="progress-bar" :style="{ width: `${(currentStep / totalSteps) * 100}%` }" />
         </div>
       </section>
 
       <form class="survey-form" @submit.prevent="submitSurvey">
-        <StepLocation
-  v-if="currentStep === 1"
-  :model-value="{
-    building: form.building,
-    floor: form.floor,
-    room: form.room,
-  }"
-  @update:model-value="updateLocation"
-/>
+        <StepLocation v-if="currentStep === 1" :model-value="{
+          building: form.building,
+          floor: form.floor,
+          room: form.room,
+        }" @update:model-value="updateLocation" />
 
-        <StepCategory
-            v-else-if="currentStep === 2"
-            v-model="form.category"
-        />
+        <StepCategory v-else-if="currentStep === 2" v-model="form.category" />
 
-        <StepCondition
-  v-else-if="currentStep === 3"
-  :model-value="{
-    rating: form.rating,
-    notes: form.notes,
-  }"
-  @update:model-value="updateCondition"
-/>
+        <StepCondition v-else-if="currentStep === 3" :model-value="{
+          rating: form.rating,
+          notes: form.notes,
+        }" @update:model-value="updateCondition" />
 
-<template v-if="currentStep === 4">
-  <StepConfirm :model-value="form" />
-  <PhotoCapture v-model="form.photo" />
-</template>
+        <template v-if="currentStep === 4">
+          <StepConfirm :model-value="form" />
+          <PhotoCapture v-model="form.photo" />
+        </template>
 
         <section v-else class="step-card">
           <div class="step-heading">
@@ -202,31 +223,18 @@ async function submitSurvey() {
         </section>
 
         <div class="form-actions">
-  <button
-    type="button"
-    class="secondary-button"
-    @click="previousStep"
-  >
-    ← Quay lại
-  </button>
+          <button type="button" class="secondary-button" @click="previousStep">
+            ← Quay lại
+          </button>
 
-  <button
-    v-if="currentStep < totalSteps"
-    type="button"
-    class="primary-button"
-    @click="nextStep"
-  >
-    Tiếp tục →
-  </button>
+          <button v-if="currentStep < totalSteps" type="button" class="primary-button" @click="nextStep">
+            Tiếp tục →
+          </button>
 
-  <button
-    v-else
-    type="submit"
-    class="primary-button"
-  >
-    Ghi nhận khảo sát ✓
-  </button>
-</div>
+          <button v-else type="submit" class="primary-button">
+            Ghi nhận khảo sát ✓
+          </button>
+        </div>
       </form>
     </div>
   </main>

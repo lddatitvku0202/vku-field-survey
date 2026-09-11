@@ -10,7 +10,21 @@ async function loadSurveys() {
   loading.value = true
 
   try {
-    surveys.value = await getAllSurveys()
+    if (import.meta.env.DEV) {
+      console.debug('[LIST] Before reload:', surveys.value)
+    }
+
+    const freshSurveys = await getAllSurveys()
+
+    if (import.meta.env.DEV) {
+      console.debug('[LIST] Fresh IndexedDB data:', freshSurveys)
+    }
+
+    surveys.value = freshSurveys
+
+    if (import.meta.env.DEV) {
+      console.debug('[LIST] Reactive surveys after reload:', surveys.value)
+    }
   } catch (error) {
     console.error('Cannot load surveys:', error)
   } finally {
