@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy import BigInteger, Column, Integer, String, Text
 
 from .database import Base
 
@@ -20,4 +20,4 @@ class Survey(Base):
 
     photo = Column(Text, nullable=True)
 
-    timestamp = Column(Integer, nullable=False)
+    timestamp = Column(BigInteger, nullable=False)
